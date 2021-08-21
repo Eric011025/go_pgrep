@@ -11,7 +11,7 @@ import (
 
 // find pid using by ppid
 // this function using pgrep command
-func FindPID2PPID(ppid int) (pidList []os.Process, err error) {
+func GetPidToPPid(ppid int) (pidList []os.Process, err error) {
 	pidCmdOut, err := exec.Command("sh", "-c", fmt.Sprintf("pgrep -P %d | awk '{ print $1 }' ", ppid)).Output()
 	if err != nil {
 		return
@@ -34,7 +34,7 @@ func FindPID2PPID(ppid int) (pidList []os.Process, err error) {
 }
 
 // get process list
-func ProcList() (pList []os.Process, err error) {
+func GetPidList() (pList []os.Process, err error) {
 	files, err := ioutil.ReadDir("/proc")
 	if err != nil {
 		return
@@ -50,9 +50,9 @@ func ProcList() (pList []os.Process, err error) {
 	return
 }
 
-// find pid using ppid and kill all of pid
-func KillChildProc(ppid int) (err error) {
-	pidList, err := FindPID2PPID(ppid)
+// find pid by ppid and kill all pid
+func KillPidToPPID(ppid int) (err error) {
+	pidList, err := GetPidToPPid(ppid)
 	if err != nil {
 		return
 	}
