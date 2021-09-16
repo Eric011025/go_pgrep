@@ -1,4 +1,4 @@
-package go_pgrep
+package pgrep
 
 import (
 	"fmt"
