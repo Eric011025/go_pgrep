@@ -2,6 +2,7 @@ package pgrep
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strconv"
@@ -32,8 +33,25 @@ func FindPID2PPID(ppid int) (pidList []os.Process, err error) {
 	return
 }
 
+// get process list
+func ProcList() (pList []os.Process, err error) {
+	files, err := ioutil.ReadDir("/proc")
+	if err != nil {
+		return
+	}
+
+	for _, file := range files {
+		if file.IsDir() {
+			if pid, typeErr := strconv.Atoi(file.Name()); typeErr == nil {
+				pList = append(pList, os.Process{Pid: pid})
+			}
+		}
+	}
+	return
+}
+
 // find pid using ppid and kill all of pid
-func KillChildProcess(ppid int) (err error) {
+func KillChildProc(ppid int) (err error) {
 	pidList, err := FindPID2PPID(ppid)
 	if err != nil {
 		return
