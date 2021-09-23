@@ -43,13 +43,35 @@ func KillPidToPPid(ppid int) (err error) {
 // find pid using by ppid
 func GetPidToPPid(ppid int) (pid []os.Process, err error) {
 	pList, err := GetPidList()
-	for pIndex, p := range pList {
+	if err != nil {
+		return
+	}
+	for _, p := range pList {
 		statByte, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/stat", p.Pid))
 		if err != nil {
 			return nil, err
 		}
 		if strings.Split(string(statByte), " ")[3] == strconv.Itoa(ppid) {
-			pid = append(pid, pList[pIndex])
+			pid = append(pid, p)
+		}
+	}
+	return
+}
+
+// find pid using by cmd
+func GetPidToCmd(cmd string) (pid []os.Process, err error) {
+	pList, err := GetPidList()
+	if err != nil {
+		return
+	}
+	for _, p := range pList {
+		statByte, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/stat", p.Pid))
+		if err != nil {
+			return nil, err
+		}
+		pCmd := strings.TrimRight(strings.TrimLeft(strings.Split(string(statByte), " ")[1], "("), ")")
+		if pCmd == cmd {
+			pid = append(pid, p)
 		}
 	}
 	return
