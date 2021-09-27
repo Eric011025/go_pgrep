@@ -1,15 +1,15 @@
 package pgrep
 
 import (
-	"fmt"
 	"io/ioutil"
-	"os"
 	"strconv"
-	"strings"
+	"syscall"
+
+	"github.com/Eric011025/go_pgrep/process"
 )
 
 // get process list
-func GetPidList() (pList []os.Process, err error) {
+func GetPidList() (pList []process.Process, err error) {
 	files, err := ioutil.ReadDir("/proc")
 	if err != nil {
 		return
@@ -18,7 +18,11 @@ func GetPidList() (pList []os.Process, err error) {
 	for _, file := range files {
 		if file.IsDir() {
 			if pid, typeErr := strconv.Atoi(file.Name()); typeErr == nil {
-				pList = append(pList, os.Process{Pid: pid})
+				p, err := process.NewProcess(pid)
+				if err != nil {
+					return nil, err
+				}
+				pList = append(pList, p)
 			}
 		}
 	}
@@ -41,17 +45,13 @@ func KillPidToPPid(ppid int) (err error) {
 }
 
 // find pid using by ppid
-func GetPidToPPid(ppid int) (pid []os.Process, err error) {
+func GetPidToPPid(ppid int) (pid []process.Process, err error) {
 	pList, err := GetPidList()
 	if err != nil {
 		return
 	}
 	for _, p := range pList {
-		statByte, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/stat", p.Pid))
-		if err != nil {
-			return nil, err
-		}
-		if strings.Split(string(statByte), " ")[3] == strconv.Itoa(ppid) {
+		if p.PPid == ppid {
 			pid = append(pid, p)
 		}
 	}
@@ -59,20 +59,23 @@ func GetPidToPPid(ppid int) (pid []os.Process, err error) {
 }
 
 // find pid using by cmd
-func GetPidToCmd(cmd string) (pid []os.Process, err error) {
+func GetPidToCmd(cmd string) (pid []process.Process, err error) {
 	pList, err := GetPidList()
 	if err != nil {
 		return
 	}
 	for _, p := range pList {
-		statByte, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/stat", p.Pid))
-		if err != nil {
-			return nil, err
-		}
-		pCmd := strings.TrimRight(strings.TrimLeft(strings.Split(string(statByte), " ")[1], "("), ")")
-		if pCmd == cmd {
+		if p.Cmd == cmd {
 			pid = append(pid, p)
 		}
 	}
+	if len(pid) == 0 {
+		return nil, process.ProcessNotFound
+	}
+	return
+}
+
+func SelfPid() (p process.Process, err error) {
+	p = process.Process{Pid: syscall.Getpid()}
 	return
 }
