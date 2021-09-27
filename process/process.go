@@ -47,6 +47,8 @@ func NewProcess(id int) (p Process, err error) {
 		return Process{}, err
 	}
 	p.PPid = ppid
+
+	p.Cmd = strings.TrimRight(strings.TrimLeft(strings.Split(string(statByte), " ")[1], "("), ")")
 	return
 }
 
