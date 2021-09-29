@@ -2,8 +2,6 @@
 
 
 
-[TOC]
-
 
 
 ## Overview 
@@ -32,8 +30,8 @@ cmd.Process.Kill()
 - GetPidToCmd : Get Pid by cmd
 - SelfPid : Get self Pid
 - KillPidToPPid : Kill processes by PPid
-- process.NewProcess : create Process object
-- (process).Kil : Kill process
+- process.NewProcess : Create Process object
+- (process).Kill : Kill process
 
 
 
@@ -90,3 +88,5 @@ func main() {
 
 ```
 
+
+Contact email : ericpark011025@gmail.com
