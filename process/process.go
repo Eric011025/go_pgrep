@@ -7,7 +7,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 	"syscall"
 )
 
@@ -15,13 +14,25 @@ type Process struct {
 	Pid   int
 	PPid  int
 	Cmd   string
-	sigMu sync.RWMutex
+	State string
 }
 
+// Process state
+var (
+	ProcessRunnig        = "R"
+	ProcessSleeping      = "S"
+	ProcessDiskSleeping  = "D"
+	ProcessZombie        = "Z"
+	ProcessTracedStopped = "T"
+	ProcessPaging        = "W"
+)
+
+// Error Tyep
 var (
 	ProcessNotFound error = errors.New("process : process not founded")
 )
 
+// Process Signal
 const (
 	Kill = syscall.SIGKILL
 )
@@ -29,26 +40,44 @@ const (
 // convert pid to process object
 func NewProcess(id int) (p Process, err error) {
 	// read process status
+
 	statByte, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/stat", id))
 	if err != nil {
 		return Process{}, ProcessNotFound
 	}
+	stat := strings.Split(string(statByte), " ")
 
 	// pid init
-	pid, err := strconv.Atoi(strings.Split(string(statByte), " ")[0])
+	pid, err := strconv.Atoi(stat[0])
 	if err != nil {
 		return Process{}, err
 	}
 	p.Pid = pid
 
 	// ppid init
-	ppid, err := strconv.Atoi(strings.Split(string(statByte), " ")[3])
+	ppid, err := strconv.Atoi(stat[3])
 	if err != nil {
 		return Process{}, err
 	}
 	p.PPid = ppid
 
-	p.Cmd = strings.TrimRight(strings.TrimLeft(strings.Split(string(statByte), " ")[1], "("), ")")
+	p.Cmd = strings.TrimRight(strings.TrimLeft(stat[1], "("), ")")
+
+	state := stat[2]
+	switch state {
+	case ProcessRunnig:
+		p.State = ProcessRunnig
+	case ProcessSleeping:
+		p.State = ProcessSleeping
+	case ProcessDiskSleeping:
+		p.State = ProcessDiskSleeping
+	case ProcessZombie:
+		p.State = ProcessZombie
+	case ProcessTracedStopped:
+		p.State = ProcessTracedStopped
+	case ProcessPaging:
+		p.State = ProcessPaging
+	}
 	return
 }
 
