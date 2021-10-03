@@ -15,6 +15,7 @@ type Process struct {
 	PPid  int
 	Cmd   string
 	State string
+	Pgrp  int
 }
 
 // Process state
@@ -63,6 +64,7 @@ func NewProcess(id int) (p Process, err error) {
 
 	p.Cmd = strings.TrimRight(strings.TrimLeft(stat[1], "("), ")")
 
+	// process state
 	state := stat[2]
 	switch state {
 	case ProcessRunnig:
@@ -78,6 +80,14 @@ func NewProcess(id int) (p Process, err error) {
 	case ProcessPaging:
 		p.State = ProcessPaging
 	}
+
+	// process group id
+	pgrp, err := strconv.Atoi(stat[4])
+	if err != nil {
+		return Process{}, err
+	}
+	p.Pgrp = pgrp
+
 	return
 }
 
