@@ -15,7 +15,7 @@ I felt PID find with PPID was necessary, so I developed it.
 cmd, err := exec.Command("sh", "-c", "watch cat test.txt").output()
 // "sh -c " command create child process
 cmd.Process.Kill()  
-// This kill function just kill parnet process (child process is still alive)
+// This kill function just kill parent process (child process is still alive)
 // We need other function to kill process
 ```
 
