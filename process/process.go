@@ -28,9 +28,9 @@ var (
 	ProcessPaging        = "W"
 )
 
-// Error Tyep
+// Error Type
 var (
-	ProcessNotFound error = errors.New("process : process not founded")
+	ProcessNotFound error = errors.New("process : process not found")
 )
 
 // Process Signal
