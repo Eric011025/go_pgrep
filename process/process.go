@@ -26,11 +26,12 @@ var (
 	ProcessZombie        = "Z"
 	ProcessTracedStopped = "T"
 	ProcessPaging        = "W"
+	ProcessIdle          = "I"
 )
 
-// Error Tyep
+// Error Type
 var (
-	ProcessNotFound error = errors.New("process : process not founded")
+	ProcessNotFound error = errors.New("process : process not found")
 )
 
 // Process Signal
@@ -79,6 +80,8 @@ func NewProcess(id int) (p Process, err error) {
 		p.State = ProcessTracedStopped
 	case ProcessPaging:
 		p.State = ProcessPaging
+	case ProcessIdle:
+		p.State = ProcessIdle
 	}
 
 	// process group id
