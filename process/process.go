@@ -10,11 +10,11 @@ import (
 )
 
 type Process struct {
-	Pid   int
-	PPid  int
-	Cmd   string
-	State string
-	Pgrp  int
+	Pid   int    // process id
+	PPid  int    // parent process id
+	Pgrp  int    // process group id
+	Cmd   string // process command
+	State string // process state
 }
 
 // Process state
@@ -39,28 +39,37 @@ const (
 )
 
 // convert pid to process object
-func NewProcess(id int) (p Process, err error) {
-	// read process status
+func NewProcess(id int) (Process, error) {
+	var (
+		p        Process
+		statByte []byte
+		encap    bool
+		err      error
+	)
 
-	statByte, err := os.ReadFile(fmt.Sprintf("/proc/%d/stat", id))
+	// read process status
+	statByte, err = ioutil.ReadFile(fmt.Sprintf("/proc/%d/stat", id))
 	if err != nil {
 		return Process{}, ProcessNotFound
 	}
-	stat := strings.Split(string(statByte), " ")
+
+	// split stat to fields. We split by space, but not when it's encapsulated by '(' and ')'
+	stat := strings.FieldsFunc(string(statByte), func(r rune) bool {
+		if r == '(' || r == ')' {
+			encap = !encap
+		}
+		return !encap && r == ' '
+	})
 
 	// pid init
-	pid, err := strconv.Atoi(stat[0])
-	if err != nil {
-		return Process{}, err
+	if p.Pid, err = strconv.Atoi(stat[0]); err != nil {
+		return Process{}, fmt.Errorf("NewProcess::p.Pid: %w", err)
 	}
-	p.Pid = pid
 
 	// ppid init
-	ppid, err := strconv.Atoi(stat[3])
-	if err != nil {
-		return Process{}, err
+	if p.PPid, err = strconv.Atoi(stat[3]); err != nil {
+		return Process{}, fmt.Errorf("NewProcess::p.PPid: %w", err)
 	}
-	p.PPid = ppid
 
 	p.Cmd = strings.TrimRight(strings.TrimLeft(stat[1], "("), ")")
 
@@ -84,13 +93,11 @@ func NewProcess(id int) (p Process, err error) {
 	}
 
 	// process group id
-	pgrp, err := strconv.Atoi(stat[4])
-	if err != nil {
-		return Process{}, err
+	if p.Pgrp, err = strconv.Atoi(stat[4]); err != nil {
+		return Process{}, fmt.Errorf("NewProcess::p.Pgrp: %w", err)
 	}
-	p.Pgrp = pgrp
 
-	return
+	return p, nil
 }
 
 // Kill can be used to kill a process
