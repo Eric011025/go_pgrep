@@ -26,6 +26,7 @@ var (
 	ProcessTracedStopped = "T"
 	ProcessPaging        = "W"
 	ProcessIdle          = "I"
+	ProcessUnknown       = "Unknown"
 )
 
 // Error Type
@@ -48,8 +49,7 @@ func NewProcess(id int) (Process, error) {
 	)
 
 	// read process status
-	statByte, err = os.ReadFile(fmt.Sprintf("/proc/%d/stat", id))
-	if err != nil {
+	if statByte, err = os.ReadFile(fmt.Sprintf("/proc/%d/stat", id)); err != nil {
 		return Process{}, ProcessNotFound
 	}
 
@@ -90,6 +90,8 @@ func NewProcess(id int) (Process, error) {
 		p.State = ProcessPaging
 	case ProcessIdle:
 		p.State = ProcessIdle
+	default:
+		p.State = ProcessUnknown
 	}
 
 	// process group id
