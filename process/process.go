@@ -3,7 +3,6 @@ package process
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -43,7 +42,7 @@ const (
 func NewProcess(id int) (p Process, err error) {
 	// read process status
 
-	statByte, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/stat", id))
+	statByte, err := os.ReadFile(fmt.Sprintf("/proc/%d/stat", id))
 	if err != nil {
 		return Process{}, ProcessNotFound
 	}
