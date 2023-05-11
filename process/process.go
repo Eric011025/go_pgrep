@@ -3,7 +3,6 @@ package process
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -26,11 +25,12 @@ var (
 	ProcessZombie        = "Z"
 	ProcessTracedStopped = "T"
 	ProcessPaging        = "W"
+	ProcessIdle          = "I"
 )
 
-// Error Tyep
+// Error Type
 var (
-	ProcessNotFound error = errors.New("process : process not founded")
+	ProcessNotFound error = errors.New("process : process not found")
 )
 
 // Process Signal
@@ -42,7 +42,7 @@ const (
 func NewProcess(id int) (p Process, err error) {
 	// read process status
 
-	statByte, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/stat", id))
+	statByte, err := os.ReadFile(fmt.Sprintf("/proc/%d/stat", id))
 	if err != nil {
 		return Process{}, ProcessNotFound
 	}
@@ -79,6 +79,8 @@ func NewProcess(id int) (p Process, err error) {
 		p.State = ProcessTracedStopped
 	case ProcessPaging:
 		p.State = ProcessPaging
+	case ProcessIdle:
+		p.State = ProcessIdle
 	}
 
 	// process group id
