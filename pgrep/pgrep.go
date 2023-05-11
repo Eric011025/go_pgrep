@@ -1,6 +1,8 @@
 package pgrep
 
 import (
+	"fmt"
+	"io/fs"
 	"os"
 	"strconv"
 	"syscall"
@@ -9,73 +11,99 @@ import (
 )
 
 // get process list
-func GetPidList() (pList []process.Process, err error) {
-	files, err := os.ReadDir("/proc")
-	if err != nil {
-		return
+func GetPidList() ([]process.Process, error) {
+	var (
+		p     process.Process
+		pList []process.Process
+		files []fs.DirEntry
+		err   error
+	)
+
+	if files, err = os.ReadDir("/proc"); err != nil {
+		return nil, fmt.Errorf("GetPidList::files: %w", err)
 	}
 
 	for _, file := range files {
 		if file.IsDir() {
 			if pid, typeErr := strconv.Atoi(file.Name()); typeErr == nil {
-				p, err := process.NewProcess(pid)
-				if err != nil {
-					return nil, err
+				if p, err = process.NewProcess(pid); err != nil {
+					return nil, fmt.Errorf("GetPidList::p: %w", err)
 				}
 				pList = append(pList, p)
 			}
 		}
 	}
-	return
+
+	return pList, nil
 }
 
-// find pid by ppid and kill all pid
-func KillPidToPPid(ppid int) (err error) {
-	pidList, err := GetPidToPPid(ppid)
-	if err != nil {
-		return
+// find pid by using ppid and kill all pid
+func KillPidToPPid(ppid int) error {
+	var (
+		pidList []process.Process
+		err     error
+	)
+
+	if pidList, err = GetPidToPPid(ppid); err != nil {
+		return fmt.Errorf("KillPidToPPid::pidList: %w", err)
 	}
+
 	for _, pid := range pidList {
-		err = pid.Kill()
-		if err != nil {
-			return
+		if err = pid.Kill(); err != nil {
+			return fmt.Errorf("KillPidToPPid::pid.Kill: %w", err)
 		}
 	}
-	return err
+
+	return nil
 }
 
-// find pid using by ppid
-func GetPidToPPid(ppid int) (pid []process.Process, err error) {
-	pList, err := GetPidList()
-	if err != nil {
-		return
+// find pid by using ppid
+func GetPidToPPid(ppid int) ([]process.Process, error) {
+	var (
+		pList []process.Process
+		pid   []process.Process
+		err   error
+	)
+
+	if pList, err = GetPidList(); err != nil {
+		return nil, fmt.Errorf("GetPidToPPid::pList: %w", err)
 	}
+
 	for _, p := range pList {
 		if p.PPid == ppid {
 			pid = append(pid, p)
 		}
 	}
-	return
+
+	return pid, nil
 }
 
-// find pid using by cmd
-func GetPidToCmd(cmd string) (pid []process.Process, err error) {
-	pList, err := GetPidList()
-	if err != nil {
-		return
+// find pid by using cmd
+func GetPidToCmd(cmd string) ([]process.Process, error) {
+	var (
+		pList []process.Process
+		pid   []process.Process
+		err   error
+	)
+
+	if pList, err = GetPidList(); err != nil {
+		return nil, fmt.Errorf("GetPidToCmd::pList: %w", err)
 	}
+
 	for _, p := range pList {
 		if p.Cmd == cmd {
 			pid = append(pid, p)
 		}
 	}
+
 	if len(pid) == 0 {
 		return nil, process.ProcessNotFound
 	}
-	return
+
+	return pid, nil
 }
 
-func SelfPid() (p process.Process, err error) {
-	p = process.Process{Pid: syscall.Getpid()}
-	return
+// SelfPid return self pid
+func SelfPid() (process.Process, error) {
+	return process.Process{Pid: syscall.Getpid()}, nil
 }
