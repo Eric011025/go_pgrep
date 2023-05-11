@@ -3,7 +3,6 @@ package process
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -26,11 +25,12 @@ var (
 	ProcessZombie        = "Z"
 	ProcessTracedStopped = "T"
 	ProcessPaging        = "W"
+	ProcessIdle          = "I"
 )
 
-// Error Tyep
+// Error Type
 var (
-	ProcessNotFound error = errors.New("process : process not founded")
+	ProcessNotFound error = errors.New("process : process not found")
 )
 
 // Process Signal
@@ -88,6 +88,8 @@ func NewProcess(id int) (Process, error) {
 		p.State = ProcessTracedStopped
 	case ProcessPaging:
 		p.State = ProcessPaging
+	case ProcessIdle:
+		p.State = ProcessIdle
 	}
 
 	// process group id
@@ -98,18 +100,27 @@ func NewProcess(id int) (Process, error) {
 	return p, nil
 }
 
-// process Kill
-func (p Process) Kill() (err error) {
+// Kill can be used to kill a process
+func (p Process) Kill() error {
+	var (
+		signal syscall.Signal
+		able   bool
+		err    error
+	)
+
 	sig := os.Kill
-	signal, able := sig.(syscall.Signal)
-	if able == false {
+
+	if signal, able = sig.(syscall.Signal); !able {
 		return errors.New("process : unsupported signal type")
 	}
+
 	if err = syscall.Kill(p.Pid, signal); err != nil {
 		if err == syscall.ESRCH {
 			return errors.New("process : process is already dead")
 		}
+
 		return err
 	}
-	return
+
+	return nil
 }
