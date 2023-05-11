@@ -1,6 +1,8 @@
 package pgrep
 
 import (
+	"fmt"
+	"io/fs"
 	"os"
 	"strconv"
 	"syscall"
@@ -9,24 +11,35 @@ import (
 )
 
 // get process list
-func GetPidList() (pList []process.Process, err error) {
-	files, err := os.ReadDir("/proc")
-	if err != nil {
-		return
+func GetPidList() ([]process.Process, error) {
+	var (
+		p     process.Process
+		pList []process.Process
+		files []fs.DirEntry
+		pid   int
+		err   error
+	)
+
+	if files, err = os.ReadDir("/proc"); err != nil {
+		return nil, fmt.Errorf("GetPidList::ReadDir::files: %w", err)
 	}
 
 	for _, file := range files {
 		if file.IsDir() {
-			if pid, typeErr := strconv.Atoi(file.Name()); typeErr == nil {
-				p, err := process.NewProcess(pid)
-				if err != nil {
-					return nil, err
-				}
-				pList = append(pList, p)
+			if pid, err = strconv.Atoi(file.Name()); err != nil {
+				// When the file name is not a number, it is not a process, so skip it
+				continue
 			}
+
+			if p, err = process.NewProcess(pid); err == nil {
+				return nil, fmt.Errorf("GetPidList::NewProcess::p: %w", err)
+			}
+
+			pList = append(pList, p)
 		}
 	}
-	return
+
+	return pList, nil
 }
 
 // find pid by ppid and kill all pid
