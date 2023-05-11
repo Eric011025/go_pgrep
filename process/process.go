@@ -11,11 +11,11 @@ import (
 )
 
 type Process struct {
-	Pid   int
-	PPid  int
-	Cmd   string
-	State string
-	Pgrp  int
+	Pid   int    // process id
+	PPid  int    // parent process id
+	Pgrp  int    // process group id
+	Cmd   string // process command
+	State string // process state
 }
 
 // Process state
@@ -42,9 +42,6 @@ const (
 func NewProcess(id int) (Process, error) {
 	var (
 		p        Process
-		pid      int
-		ppid     int
-		pgrp     int
 		statByte []byte
 		encap    bool
 		err      error
@@ -65,16 +62,14 @@ func NewProcess(id int) (Process, error) {
 	})
 
 	// pid init
-	if pid, err = strconv.Atoi(stat[0]); err != nil {
-		return Process{}, err
+	if p.Pid, err = strconv.Atoi(stat[0]); err != nil {
+		return Process{}, fmt.Errorf("NewProcess::p.Pid: %w", err)
 	}
-	p.Pid = pid
 
 	// ppid init
-	if ppid, err = strconv.Atoi(stat[3]); err != nil {
-		return Process{}, err
+	if p.PPid, err = strconv.Atoi(stat[3]); err != nil {
+		return Process{}, fmt.Errorf("NewProcess::p.PPid: %w", err)
 	}
-	p.PPid = ppid
 
 	p.Cmd = strings.TrimRight(strings.TrimLeft(stat[1], "("), ")")
 
@@ -96,10 +91,9 @@ func NewProcess(id int) (Process, error) {
 	}
 
 	// process group id
-	if pgrp, err = strconv.Atoi(stat[4]); err != nil {
-		return Process{}, err
+	if p.Pgrp, err = strconv.Atoi(stat[4]); err != nil {
+		return Process{}, fmt.Errorf("NewProcess::p.Pgrp: %w", err)
 	}
-	p.Pgrp = pgrp
 
 	return p, nil
 }
