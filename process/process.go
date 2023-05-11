@@ -48,7 +48,7 @@ func NewProcess(id int) (Process, error) {
 	)
 
 	// read process status
-	statByte, err = ioutil.ReadFile(fmt.Sprintf("/proc/%d/stat", id))
+	statByte, err = os.ReadFile(fmt.Sprintf("/proc/%d/stat", id))
 	if err != nil {
 		return Process{}, ProcessNotFound
 	}
