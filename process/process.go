@@ -93,18 +93,27 @@ func NewProcess(id int) (p Process, err error) {
 	return
 }
 
-// process Kill
-func (p Process) Kill() (err error) {
+// Kill can be used to kill a process
+func (p Process) Kill() error {
+	var (
+		signal syscall.Signal
+		able   bool
+		err    error
+	)
+
 	sig := os.Kill
-	signal, able := sig.(syscall.Signal)
-	if able == false {
+
+	if signal, able = sig.(syscall.Signal); !able {
 		return errors.New("process : unsupported signal type")
 	}
+
 	if err = syscall.Kill(p.Pid, signal); err != nil {
 		if err == syscall.ESRCH {
 			return errors.New("process : process is already dead")
 		}
+
 		return err
 	}
-	return
+
+	return nil
 }
