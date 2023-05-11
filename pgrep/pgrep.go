@@ -1,7 +1,7 @@
 package pgrep
 
 import (
-	"io/ioutil"
+	"os"
 	"strconv"
 	"syscall"
 
@@ -10,7 +10,7 @@ import (
 
 // get process list
 func GetPidList() (pList []process.Process, err error) {
-	files, err := ioutil.ReadDir("/proc")
+	files, err := os.ReadDir("/proc")
 	if err != nil {
 		return
 	}
