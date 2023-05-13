@@ -31,7 +31,7 @@ func GetPidList() ([]process.Process, error) {
 				continue
 			}
 
-			if p, err = process.NewProcess(pid); err == nil {
+			if p, err = process.NewProcess(pid); err != nil {
 				return nil, fmt.Errorf("GetPidList::NewProcess::p: %w", err)
 			}
 
