@@ -1,43 +1,34 @@
-# go_pgrep document
+# go_pgrep: A PID Management Library in Go
 
+## Introduction
 
+The `go_pgrep` library is a Go package that enables you to conveniently handle Linux process IDs (PIDs) and parent process IDs (PPIDs). Inspired by the Linux command `pgrep`, this package was developed out of the necessity to find and manage PIDs associated with a given PPID. 
 
-
-
-## Overview 
-
-> find PID by PPID
-
-This go_pgrep package motivated by linux command pgrep
-I felt PID find with PPID was necessary, so I developed it.
+Often, when working with processes in Go, we encounter situations where killing a parent process does not terminate its child processes. For instance:
 
 ```go
-cmd, err := exec.Command("sh", "-c", "watch cat test.txt").output()
-// "sh -c " command create child process
+cmd, err := exec.Command("sh", "-c", "watch cat test.txt").Output()
+// The command above creates a child process.
 cmd.Process.Kill()  
-// This kill function just kill parent process (child process is still alive)
-// We need other function to kill process
+// Killing the parent process does not terminate the child process.
 ```
 
+To handle such cases, `go_pgrep` provides a set of functions that lets you manage processes more effectively.
 
+## Features
 
+`go_pgrep` provides the following functions for managing processes:
 
-
-## Support functions 
-
-- GetPidList : Get all Pid
-- GetPidToPPid : Get Pid by Pid
-- GetPidToCmd : Get Pid by cmd
-- SelfPid : Get self Pid
-- KillPidToPPid : Kill processes by PPid
-- process.NewProcess : Create Process object
-- (process).Kill : Kill process
-
-
-
-
+- `GetPidList`: Retrieves all PIDs.
+- `GetPidToPPid`: Retrieves PIDs associated with a given PPID.
+- `GetPidToCmd`: Retrieves PIDs associated with a given command.
+- `SelfPid`: Retrieves the PID of the current process.
+- `KillPidToPPid`: Terminates processes associated with a given PPID.
+- `(process).Kill`: Terminates a process.
 
 ## Usage
+
+Here's an example demonstrating how to use `go_pgrep`:
 
 ```go
 package main
@@ -49,44 +40,40 @@ import (
 )
 
 func main() {
-  // get pid by ppid
+  	// Get PID by PPID
 	ppidList, err := pgrep.GetPidToPPid(1)
 	if err != nil {
 		panic(err)
 	}
 	for _, ppidListItem := range ppidList {
-    fmt.Println("pid : ", ppidListItem.Pid)
+    fmt.Println("PID: ", ppidListItem.Pid)
 	}
   
-  
-  // kill pid by ppid
-  err := pgrep.KillPidToPPid(6684)
+  	// Kill PID by PPID
+  	err = pgrep.KillPidToPPid(6684)
 	if err != nil {
 		panic(err)
 	}
   
-  
-  // get pid by cmd 
-  result, err := pgrep.GetPidToCmd("watch")
+  	// Get PID by command
+  	result, err := pgrep.GetPidToCmd("watch")
 	if err != nil {
 		panic(err)
 	}
 	for _, value := range result {
-		fmt.Println(value.Pid)
-    // process kill
+		fmt.Println("PID: ", value.Pid)
+    	// Kill the process
 		value.Kill()
 	}
   
-  
-  // get my pid
-  selfPid, err := pgrep.SelfPid()
+  	// Get the current process's PID
+  	selfPid, err := pgrep.SelfPid()
 	if err != nil {
 		panic(err)
 	}
-  fmt.Println("self pid : ", selfPid.Pid)
+  	fmt.Println("Self PID: ", selfPid.Pid)
 }
-
 ```
 
-
-Contact email : ericpark011025@gmail.com
+## Contact
+For any queries or suggestions, feel free to reach out to Eric Park at ericpark011025@gmail.com.
