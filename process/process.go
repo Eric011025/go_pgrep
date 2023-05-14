@@ -40,7 +40,7 @@ const (
 )
 
 // convert pid to process object
-func NewProcess(id int) (Process, error) {
+func New(id int) (Process, error) {
 	var (
 		p        Process
 		statByte []byte
