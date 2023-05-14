@@ -109,6 +109,6 @@ func GetPidToCmd(cmd string) ([]process.Process, error) {
 }
 
 // SelfPid return self pid
-func SelfPid() (process.Process, error) {
-	return process.Process{Pid: syscall.Getpid()}, nil
+func SelfPid() process.Process {
+	return process.Process{Pid: syscall.Getpid()}
 }
