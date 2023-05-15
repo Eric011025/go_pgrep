@@ -92,7 +92,7 @@ func GetPidToCmd(cmd string) ([]process.Process, error) {
 	)
 
 	if pList, err = GetPidList(); err != nil {
-		return nil, fmt.Errorf("GetPidToCmd::GetPidList::pList: %w", err)
+		return nil, fmt.Errorf("get pid list fail : %w", err)
 	}
 
 	for _, p := range pList {
@@ -102,7 +102,7 @@ func GetPidToCmd(cmd string) ([]process.Process, error) {
 	}
 
 	if len(pid) == 0 {
-		return nil, process.ProcessNotFound
+		return nil, fmt.Errorf("process not found : %w", err)
 	}
 
 	return pid, nil
