@@ -29,11 +29,6 @@ var (
 	ProcessUnknown       = "Unknown"
 )
 
-// Error Type
-var (
-	ProcessNotFound error = errors.New("process : process not found")
-)
-
 // Process Signal
 const (
 	Kill = syscall.SIGKILL
@@ -50,7 +45,7 @@ func New(id int) (Process, error) {
 
 	// read process status
 	if statByte, err = os.ReadFile(fmt.Sprintf("/proc/%d/stat", id)); err != nil {
-		return Process{}, ProcessNotFound
+		return Process{}, fmt.Errorf("process list read fail : %w", err)
 	}
 
 	// split stat to fields. We split by space, but not when it's encapsulated by '(' and ')'
@@ -63,12 +58,12 @@ func New(id int) (Process, error) {
 
 	// pid init
 	if p.Pid, err = strconv.Atoi(stat[0]); err != nil {
-		return Process{}, fmt.Errorf("NewProcess::p.Pid: %w", err)
+		return Process{}, fmt.Errorf("process pid init fail : %w", err)
 	}
 
 	// ppid init
 	if p.PPid, err = strconv.Atoi(stat[3]); err != nil {
-		return Process{}, fmt.Errorf("NewProcess::p.PPid: %w", err)
+		return Process{}, fmt.Errorf("process ppid init fail : %w", err)
 	}
 
 	p.Cmd = strings.TrimRight(strings.TrimLeft(stat[1], "("), ")")
@@ -96,7 +91,7 @@ func New(id int) (Process, error) {
 
 	// process group id
 	if p.Pgrp, err = strconv.Atoi(stat[4]); err != nil {
-		return Process{}, fmt.Errorf("NewProcess::p.Pgrp: %w", err)
+		return Process{}, fmt.Errorf("process gid init fail : %w", err)
 	}
 
 	return p, nil
